@@ -236,96 +236,22 @@ name to be used in a schema, `display_name` should be used.
 
 ### Utilities
 
-There are a number of utility methods provided that take care of some common tasks.
+There are a number of [utility methods][util] provided that take care of some common tasks.
 
-### ExprVisitor
+[util]: https://github.com/apache/datafusion/blob/main/datafusion/expr/src/utils.rs
 
-The `ExprVisitor` and `ExprVisitable` traits provide a mechanism for applying a visitor pattern to an expression tree.
+### Recursively walk an expression tree
 
-Here is an example that demonstrates this.
+Coming soon
 
-```rust
+### Rewriting expressions
 
-fn extract_subquery_filters(expression: &Expr, extracted: &mut Vec<Expr>) -> Result<()> {
-    struct InSubqueryVisitor<'a> {
-        accum: &'a mut Vec<Expr>,
-    }
+Coming soon
 
-    impl ExpressionVisitor for InSubqueryVisitor<'_> {
-        fn pre_visit(self, expr: &Expr) -> Result<Recursion<Self>> {
-            if let Expr::InSubquery(_) = expr {
-                self.accum.push(expr.to_owned());
-            }
-            Ok(Recursion::Continue(self))
-        }
-    }
+### Optimize children
 
-    expression.accept(InSubqueryVisitor { accum: extracted })?;
-    Ok(())
-}
-```
 
-### Rewriting Expressions
-
-The `MyExprRewriter` trait can be implemented to provide a way to rewrite expressions. This rule can then be applied
-to an expression by calling `Expr::rewrite` (from the `ExprRewritable` trait).
-
-The `rewrite` method will perform a depth first walk of the expression and its children to rewrite an expression,
-consuming `self` producing a new expression.
-
-```tofix
-let mut expr_rewriter = MyExprRewriter {};
-let expr = expr.rewrite(&mut expr_rewriter)?;
-```
-
-Here is an example implementation which will rewrite `expr BETWEEN a AND b` as `expr >= a AND expr <= b`. Note that the
-implementation does not need to perform any recursion since this is handled by the `rewrite` method.
-
-```tofix
-struct MyExprRewriter {}
-
-impl ExprRewriter for MyExprRewriter {
-    fn mutate(&mut self, expr: Expr) -> Result<Expr> {
-        match expr {
-            Expr::Between {
-                negated,
-                expr,
-                low,
-                high,
-            } => {
-                let expr: Expr = expr.as_ref().clone();
-                let low: Expr = low.as_ref().clone();
-                let high: Expr = high.as_ref().clone();
-                if negated {
-                    Ok(expr.clone().lt(low).or(expr.clone().gt(high)))
-                } else {
-                    Ok(expr.clone().gt_eq(low).and(expr.clone().lt_eq(high)))
-                }
-            }
-            _ => Ok(expr.clone()),
-        }
-    }
-}
-```
-
-### optimize_children
-
-Typically a rule is applied recursively to all operators within a query plan. Rather than duplicate
-that logic in each rule, an `optimize_children` method is provided. This recursively invokes the `optimize` method on
-the plan's children and then returns a node of the same type.
-
-```tofix
-fn optimize(
-    &self,
-    plan: &LogicalPlan,
-    _config: &mut OptimizerConfig,
-) -> Result<LogicalPlan> {
-    // recurse down and optimize children first
-    let plan = utils::optimize_children(self, plan, _config)?;
-
-    ...
-}
-```
+Coming soon
 
 ### Writing Tests
 
