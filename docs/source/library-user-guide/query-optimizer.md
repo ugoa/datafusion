@@ -65,15 +65,6 @@ fn observer(plan: &LogicalPlan, rule: &dyn OptimizerRule) {
 }
 ```
 
-## Providing Custom Rules
-
-The optimizer can be created with a custom set of rules.
-
-```rust
-let optimizer = Optimizer::with_rules(vec![
-    Arc::new(MyRule {})
-]);
-```
 
 ## Writing Optimization Rules
 
@@ -82,24 +73,69 @@ Please refer to the
 example to learn more about the general approach to writing optimizer rules and
 then move onto studying the existing rules.
 
+`OptimizerRule` transforms one ['LogicalPlan'] into another which
+computes the same results, but in a potentially more efficient
+way. If there are no suitable transformations for the input plan,
+the optimizer can simply return it as is.
+
 All rules must implement the `OptimizerRule` trait.
 
-```tofix
-/// `OptimizerRule` transforms one ['LogicalPlan'] into another which
-/// computes the same results, but in a potentially more efficient
-/// way. If there are no suitable transformations for the input plan,
-/// the optimizer can simply return it as is.
-pub trait OptimizerRule {
-    /// Rewrite `plan` to an optimized form
-    fn optimize(
-        &self,
-        plan: &LogicalPlan,
-        config: &dyn OptimizerConfig,
-    ) -> Result<LogicalPlan>;
+```fixed
+# use datafusion::common::tree_node::Transformed;
+# use datafusion::common::Result;
+# use datafusion::logical_expr::LogicalPlan;
+# use datafusion::optimizer::{OptimizerConfig, OptimizerRule};
+#
 
-    /// A human readable name for this optimizer rule
-    fn name(&self) -> &str;
+#[derive(Default, Debug)]
+struct MyOptimizerRule {}
+
+impl OptimizerRule for MyOptimizerRule {
+    fn name(&self) -> &str {
+        "my_optimizer_rule"
+    }
+
+    fn rewrite(
+        &self,
+        plan: LogicalPlan,
+        _config: &dyn OptimizerConfig,
+    ) -> Result<Transformed<LogicalPlan>> {
+        unimplemented!()
+    }
 }
+```
+
+## Providing Custom Rules
+
+The optimizer can be created with a custom set of rules.
+
+```rust
+# use std::sync::Arc;
+# use datafusion::logical_expr::{col, lit, LogicalPlan, LogicalPlanBuilder};
+# use datafusion::optimizer::{OptimizerRule, OptimizerConfig, OptimizerContext, Optimizer};
+# use datafusion::common::tree_node::Transformed;
+# use datafusion::common::Result;
+#
+# #[derive(Default, Debug)]
+# struct MyOptimizerRule {}
+#
+# impl OptimizerRule for MyOptimizerRule {
+#     fn name(&self) -> &str {
+#         "my_optimizer_rule"
+#     }
+#
+#     fn rewrite(
+#         &self,
+#         plan: LogicalPlan,
+#         _config: &dyn OptimizerConfig,
+#     ) -> Result<Transformed<LogicalPlan>> {
+#         unimplemented!()
+#     }
+# }
+
+let optimizer = Optimizer::with_rules(vec![
+    Arc::new(MyOptimizerRule {})
+]);
 ```
 
 ### General Guidelines
