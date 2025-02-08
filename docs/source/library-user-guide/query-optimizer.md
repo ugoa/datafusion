@@ -69,7 +69,7 @@ fn observer(plan: &LogicalPlan, rule: &dyn OptimizerRule) {
 
 The optimizer can be created with a custom set of rules.
 
-```tofix
+```rust
 let optimizer = Optimizer::with_rules(vec![
     Arc::new(MyRule {})
 ]);
