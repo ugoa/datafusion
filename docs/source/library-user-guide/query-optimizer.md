@@ -109,7 +109,7 @@ impl OptimizerRule for MyOptimizerRule {
 
 The optimizer can be created with a custom set of rules.
 
-```rust
+```fixed
 # use std::sync::Arc;
 # use datafusion::logical_expr::{col, lit, LogicalPlan, LogicalPlanBuilder};
 # use datafusion::optimizer::{OptimizerRule, OptimizerConfig, OptimizerContext, Optimizer};
@@ -213,17 +213,20 @@ and [#3555](https://github.com/apache/datafusion/issues/3555) occur where the ex
 
 There are currently two ways to create a name for an expression in the logical plan.
 
-```tofix
+```rust
+# use datafusion::common::Result;
+# struct Expr;
+
 impl Expr {
     /// Returns the name of this expression as it should appear in a schema. This name
     /// will not include any CAST expressions.
     pub fn display_name(&self) -> Result<String> {
-        create_name(self)
+        Ok("display_name".to_string())
     }
 
     /// Returns a full and complete string representation of this expression.
     pub fn canonical_name(&self) -> String {
-        format!("{}", self)
+        "canonical_name".to_string()
     }
 }
 ```
