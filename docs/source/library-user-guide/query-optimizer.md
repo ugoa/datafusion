@@ -213,7 +213,7 @@ and [#3555](https://github.com/apache/datafusion/issues/3555) occur where the ex
 
 There are currently two ways to create a name for an expression in the logical plan.
 
-```rust
+```fixed
 # use datafusion::common::Result;
 # struct Expr;
 
@@ -244,7 +244,8 @@ The `ExprVisitor` and `ExprVisitable` traits provide a mechanism for applying a 
 
 Here is an example that demonstrates this.
 
-```tofix
+```rust
+
 fn extract_subquery_filters(expression: &Expr, extracted: &mut Vec<Expr>) -> Result<()> {
     struct InSubqueryVisitor<'a> {
         accum: &'a mut Vec<Expr>,
