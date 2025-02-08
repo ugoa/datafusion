@@ -33,20 +33,30 @@ they execute more quickly while still computing the same result.
 The following code demonstrates the basic flow of creating the optimizer with a default set of optimization rules
 and applying it to a logical plan to produce an optimized logical plan.
 
-```rust
+```fixed
+
+use std::sync::Arc;
+use datafusion::logical_expr::{col, lit, LogicalPlan, LogicalPlanBuilder};
+use datafusion::optimizer::{OptimizerRule, OptimizerContext, Optimizer};
 
 // We need a logical plan as the starting point. There are many ways to build a logical plan:
 //
 // The `datafusion-expr` crate provides a LogicalPlanBuilder
 // The `datafusion-sql` crate provides a SQL query planner that can create a LogicalPlan from SQL
 // The `datafusion` crate provides a DataFrame API that can create a LogicalPlan
-let logical_plan = ...
 
-let mut config = OptimizerContext::default();
-let optimizer = Optimizer::new(&config);
-let optimized_plan = optimizer.optimize(&logical_plan, &config, observe)?;
+let initial_logical_plan = LogicalPlanBuilder::empty(false).build().unwrap();
 
-fn observe(plan: &LogicalPlan, rule: &dyn OptimizerRule) {
+// use builtin rules or customized rules
+let rules: Vec<Arc<dyn OptimizerRule + Send + Sync>> = vec![];
+
+let optimizer = Optimizer::with_rules(rules);
+
+let config = OptimizerContext::new().with_max_passes(16);
+
+let optimized_plan = optimizer.optimize(initial_logical_plan.clone(), &config, observer);
+
+fn observer(plan: &LogicalPlan, rule: &dyn OptimizerRule) {
     println!(
         "After applying rule '{}':\n{}",
         rule.name(),
@@ -59,7 +69,7 @@ fn observe(plan: &LogicalPlan, rule: &dyn OptimizerRule) {
 
 The optimizer can be created with a custom set of rules.
 
-```rust
+```tofix
 let optimizer = Optimizer::with_rules(vec![
     Arc::new(MyRule {})
 ]);
@@ -74,7 +84,7 @@ then move onto studying the existing rules.
 
 All rules must implement the `OptimizerRule` trait.
 
-```rust
+```tofix
 /// `OptimizerRule` transforms one ['LogicalPlan'] into another which
 /// computes the same results, but in a potentially more efficient
 /// way. If there are no suitable transformations for the input plan,
@@ -167,7 +177,7 @@ and [#3555](https://github.com/apache/datafusion/issues/3555) occur where the ex
 
 There are currently two ways to create a name for an expression in the logical plan.
 
-```rust
+```tofix
 impl Expr {
     /// Returns the name of this expression as it should appear in a schema. This name
     /// will not include any CAST expressions.
@@ -195,7 +205,7 @@ The `ExprVisitor` and `ExprVisitable` traits provide a mechanism for applying a 
 
 Here is an example that demonstrates this.
 
-```rust
+```tofix
 fn extract_subquery_filters(expression: &Expr, extracted: &mut Vec<Expr>) -> Result<()> {
     struct InSubqueryVisitor<'a> {
         accum: &'a mut Vec<Expr>,
@@ -223,7 +233,7 @@ to an expression by calling `Expr::rewrite` (from the `ExprRewritable` trait).
 The `rewrite` method will perform a depth first walk of the expression and its children to rewrite an expression,
 consuming `self` producing a new expression.
 
-```rust
+```tofix
 let mut expr_rewriter = MyExprRewriter {};
 let expr = expr.rewrite(&mut expr_rewriter)?;
 ```
@@ -231,7 +241,7 @@ let expr = expr.rewrite(&mut expr_rewriter)?;
 Here is an example implementation which will rewrite `expr BETWEEN a AND b` as `expr >= a AND expr <= b`. Note that the
 implementation does not need to perform any recursion since this is handled by the `rewrite` method.
 
-```rust
+```tofix
 struct MyExprRewriter {}
 
 impl ExprRewriter for MyExprRewriter {
@@ -264,7 +274,7 @@ Typically a rule is applied recursively to all operators within a query plan. Ra
 that logic in each rule, an `optimize_children` method is provided. This recursively invokes the `optimize` method on
 the plan's children and then returns a node of the same type.
 
-```rust
+```tofix
 fn optimize(
     &self,
     plan: &LogicalPlan,
