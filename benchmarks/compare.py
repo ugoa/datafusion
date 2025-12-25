@@ -175,12 +175,12 @@ def compare(
 
     for baseline_result, comparison_result in zip(baseline.queries, comparison.queries):
         assert baseline_result.query == comparison_result.query
-        
+
         base_failed = not baseline_result.success
-        comp_failed = not comparison_result.success 
+        comp_failed = not comparison_result.success
         # If a query fails, its execution time is excluded from the performance comparison
         if base_failed or comp_failed:
-            change_text = "incomparable" 
+            change_text = "incomparable"
             failure_count += 1
             table.add_row(
                 f"Q{baseline_result.query}",

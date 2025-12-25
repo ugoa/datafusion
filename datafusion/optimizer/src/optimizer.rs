@@ -315,6 +315,8 @@ impl Optimizer {
     where
         F: FnMut(&LogicalPlan, &dyn OptimizerRule),
     {
+        panic!("{}", &plan);
+
         // verify LP is valid, before the first LP optimizer pass.
         plan.check_invariants(InvariantLevel::Executable)
             .map_err(|e| e.context("Invalid input plan before LP Optimizers"))?;

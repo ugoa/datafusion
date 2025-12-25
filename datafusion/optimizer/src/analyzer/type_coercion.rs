@@ -290,6 +290,9 @@ impl<'a> TypeCoercionRewriter<'a> {
         right: Expr,
         right_schema: &DFSchema,
     ) -> Result<(Expr, Expr)> {
+        dbg!(&left);
+        dbg!(&right);
+
         let (left_type, right_type) = BinaryTypeCoercer::new(
             &left.get_type(left_schema)?,
             &op,

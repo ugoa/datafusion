@@ -480,6 +480,21 @@ fn select_correlated_predicate_subquery_with_uppercase_ident() {
     );
 }
 
+#[test]
+fn coelce_int_to_interval() {
+    let sql = "SELECT col_date32 + (5 + 2) from test";
+
+    let plan = test_sql(sql).unwrap();
+
+    assert_snapshot!(
+          format!("{plan}"),
+          @r#"
+Filter: test.col_int32 > Int32(0)
+  TableScan: test projection=[col_int32]
+  "#
+    );
+}
+
 fn test_sql(sql: &str) -> Result<LogicalPlan> {
     // parse the SQL
     let dialect = GenericDialect {}; // or AnsiDialect, or your own dialect ...
